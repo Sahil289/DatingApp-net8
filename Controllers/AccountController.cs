@@ -17,28 +17,29 @@ public class AccountController(DataContext context, ITokenService tokenService) 
     public async Task<ActionResult<UserDto>> Register(RegisterDto registerDto){
 
         if(await UserExists(registerDto.Username)) return BadRequest("Username is taken!");
-        using var hmac = new HMACSHA512();// we don't want to inject the hash class into the controller, we just want to use it, so basically with using statement it automatically disposes the variables from garbage collection
-        // using var hmac = new HMACSHA512(); // Control over garbage collection
-        // var hmac = new HMACSHA512(); // No control over garbase collection
+        return Ok();
+        // using var hmac = new HMACSHA512();// we don't want to inject the hash class into the controller, we just want to use it, so basically with using statement it automatically disposes the variables from garbage collection
+        // // using var hmac = new HMACSHA512(); // Control over garbage collection
+        // // var hmac = new HMACSHA512(); // No control over garbase collection
 
-        var user = new AppUser
-        {
-            UserName = registerDto.Username.ToLower(),
-            PassHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(registerDto.Password)),
-            // UserName = username,
-            // PassHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(password)),
-            PassSalt = hmac.Key
-        };
+        // var user = new AppUser
+        // {
+        //     UserName = registerDto.Username.ToLower(),
+        //     PassHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(registerDto.Password)),
+        //     // UserName = username,
+        //     // PassHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(password)),
+        //     PassSalt = hmac.Key
+        // };
         
-        context.Users.Add(user);
+        // context.Users.Add(user);
         
-        await context.SaveChangesAsync();
+        // await context.SaveChangesAsync();
 
-        // return user;
-        return new UserDto{
-            Username = user.UserName,
-            Token = tokenService.CreateToken(user)
-        };
+        // // return user;
+        // return new UserDto{
+        //     Username = user.UserName,
+        //     Token = tokenService.CreateToken(user)
+        // };
     }
     private async Task<bool> UserExists(string username){
         return await context.Users.AnyAsync(x => x.UserName.ToLower() == username.ToLower());

@@ -1,15 +1,20 @@
 ﻿using System.Net.Mime;
+using System.Runtime.CompilerServices;
 using API.Data;
+using API.DTOs;
 using API.Entities;
+using API.Interfaces;
+using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace API.Controllers;
 
+[Authorize]
 // [ApiController]
 // [Route("api/[controller]")] //localhost:5001/api/Users
-public class UsersController(DataContext context) : BaseApiController
+public class UsersController(IUserRepository userRepository) : BaseApiController
 {
     // private readonly DataContext _context = context; // lot of developers like to name the private fields as _
 
@@ -33,20 +38,36 @@ public class UsersController(DataContext context) : BaseApiController
     //     return Ok(user);
     // }
 
-    [AllowAnonymous]
+    // [AllowAnonymous]
     //The below code is called as asynchronous code
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<AppUser>>> GetUsers(){
+    // public async Task<ActionResult<IEnumerable<AppUser>>> GetUsers(){
+    public async Task<ActionResult<IEnumerable<MemberDto>>> GetUsers(){
         //await keyword is used to check the code that might block the request
-        var users = await context.Users.ToListAsync();
+        // var users = await context.Users.ToListAsync();
+        // var users = await userRepository.GetUsersAsync();
+        var users = await userRepository.GetMembersAsync();
+
+        // var usersToReturn = mapper.Map<IEnumerable<MemberDto>>(users);
+        // return Ok(users);
+        // return Ok(usersToReturn);
         return Ok(users);
     }
-    [Authorize]
-    [HttpGet("{id:int}")]
-    public async Task<ActionResult<AppUser>> GetUser(int id){
-        var user = await context.Users.FindAsync(id);
+    // [Authorize]
+    // [HttpGet("{id:int}")]
+    [HttpGet("{username}")]
+    // public async Task<ActionResult<AppUser>> GetUser(int id){
+    public async Task<ActionResult<MemberDto>> GetUser(string username){
+        // var user = await context.Users.FindAsync(id);
+        // var user = await userRepository.GetUserByUsernameAsync(username);
+        var user = await userRepository.GetMemberAsync(username);
         if(user == null) return NotFound();
+        // return Ok(user);
+        //Automapper
+        // var userToReturn = mapper.Map<MemberDto>(user);
+        // return Ok(userToReturn);
         return Ok(user);
+        // return user;
     }
 
 }

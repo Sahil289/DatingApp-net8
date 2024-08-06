@@ -1,5 +1,6 @@
 ﻿using System.Net.Mime;
 using System.Runtime.CompilerServices;
+using System.Security.Claims;
 using API.Data;
 using API.DTOs;
 using API.Entities;
@@ -14,7 +15,7 @@ namespace API.Controllers;
 [Authorize]
 // [ApiController]
 // [Route("api/[controller]")] //localhost:5001/api/Users
-public class UsersController(IUserRepository userRepository) : BaseApiController
+public class UsersController(IUserRepository userRepository, IMapper mapper) : BaseApiController
 {
     // private readonly DataContext _context = context; // lot of developers like to name the private fields as _
 
@@ -54,7 +55,7 @@ public class UsersController(IUserRepository userRepository) : BaseApiController
         return Ok(users);
     }
     // [Authorize]
-    // [HttpGet("{id:int}")]
+    // [HttpGet("{id:int}")]`
     [HttpGet("{username}")]
     // public async Task<ActionResult<AppUser>> GetUser(int id){
     public async Task<ActionResult<MemberDto>> GetUser(string username){
@@ -69,5 +70,14 @@ public class UsersController(IUserRepository userRepository) : BaseApiController
         return Ok(user);
         // return user;
     }
-
+    [HttpPut]
+    public async Task<ActionResult> UpdateUser(MemberUpdateDto memberUpdateDto){
+        var username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if(username == null) return BadRequest("No username found in token!");
+        var user = await userRepository.GetUserByUsernameAsync(username);
+        if(user == null) return BadRequest("Could not find user!");
+        mapper.Map(memberUpdateDto, user);
+        if(await userRepository.SaveAllAsync()) return NoContent();
+        return BadRequest("Failed to update the user!");
+    }
 }
